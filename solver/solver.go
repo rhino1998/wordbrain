@@ -1,7 +1,9 @@
 package solver
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"sync"
 
@@ -49,10 +51,25 @@ func (n *node) add(sequence ...Word) {
 	}
 }
 
+func (n *node) buildString(w io.Writer, level int, seq matrix.Sequence) {
+	for i := 0; i < level; i++ {
+		fmt.Fprint(w, "\t")
+	}
+
+	fmt.Fprintf(w, "%s\n", n.word.word)
+	for _, nn := range n.next {
+		nn.buildString(w, level+1, seq.Add(nn.word.path))
+	}
+
+	// if len(n.next) == 0 {
+	// 	seq.Fprintln(w, level)
+	// }
+}
+
 func (n *node) String() string {
 	out := n.word.word + "\n"
 	for _, nn := range n.next {
-		out += "\t" + strings.Replace(nn.String(), "\n", "\n\t", -1)
+		out = out + strings.Replace(nn.String(), "\n", "\n\t", -1)
 	}
 	return out
 }
@@ -78,7 +95,12 @@ func Solve(m matrix.Matrix, d *dictionary.Dictionary, wordLengths []int) *Soluti
 }
 
 func (s *Solution) String() string {
-	return s.root.String()
+	b := bytes.NewBuffer(nil)
+	fmt.Println(s.m)
+	for _, n := range s.root.next {
+		n.buildString(b, 0, matrix.Sequence{s.m})
+	}
+	return b.String()
 }
 
 //Add adds a sequence of words to the solution set
@@ -93,6 +115,9 @@ func solve(m matrix.Matrix, d *dictionary.Dictionary, wordLengths []int) []*node
 	wg := sync.WaitGroup{}
 	for i := range m {
 		for j := range m[i] {
+			if m[i][j] == matrix.EmptySpace {
+				continue
+			}
 			wg.Add(1)
 			go func(i, j int) {
 				findStep(m, wordLengths[0], []matrix.Position{matrix.Position{X: i, Y: j}}, d, words)
@@ -117,7 +142,6 @@ func solve(m matrix.Matrix, d *dictionary.Dictionary, wordLengths []int) []*node
 			}
 			nodes = append(nodes, n)
 		} else {
-
 			n := newNode(word)
 			nodes = append(nodes, n)
 		}

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 
 	"github.com/rhino1998/wordbrain/dictionary"
@@ -12,20 +13,36 @@ import (
 )
 
 func main() {
-	m := matrix.Matrix{
-		[]matrix.Space{'p', 'e', 'e', 'r'},
-		[]matrix.Space{'a', 'h', 'd', 'b'},
-		[]matrix.Space{'e', 't', 'c', 'a'},
-		[]matrix.Space{'m', 's', 't', 'a'},
-	}
+
+	m := makeMatrix(os.Args[1])
 	words, err := loadWords("words.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 	d := dictionary.New(words...)
 	fmt.Println(m)
-	s := solver.Solve(m, d, []int{4, 5, 3, 4})
+	s := solver.Solve(m, d, getWordLengths(os.Args[2]))
 	fmt.Println(s)
+}
+
+func makeMatrix(strMatrix string) matrix.Matrix {
+	dims := int(math.Sqrt(float64(len(strMatrix))))
+	m := make(matrix.Matrix, dims)
+	for i := 0; i < dims; i++ {
+		m[i] = make([]matrix.Space, dims)
+		for j := 0; j < dims; j++ {
+			m[i][j] = matrix.Space(strMatrix[(len(strMatrix))-(i+1)*dims+j])
+		}
+	}
+	return m
+}
+
+func getWordLengths(strLengths string) []int {
+	lengths := make([]int, 0, 4)
+	for _, length := range strLengths {
+		lengths = append(lengths, int(length-'0'))
+	}
+	return lengths
 }
 
 func loadWords(filename string) ([]string, error) {
