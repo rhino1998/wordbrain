@@ -19,6 +19,10 @@ func New(words ...string) *Dictionary {
 	return d
 }
 
+func NewDefault() *Dictionary {
+	return &Dictionary{valid:wordlist, prefixValid:prefixlist}
+}
+
 //Contains checks for the presence of word in d
 func (d *Dictionary) Contains(word string) bool {
 	_, ok := d.valid[word]
