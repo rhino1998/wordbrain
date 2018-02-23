@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"math"
 	"os"
 
@@ -15,11 +14,7 @@ import (
 func main() {
 
 	m := makeMatrix(os.Args[1])
-	words, err := loadWords("words.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	d := dictionary.New(words...)
+	d := dictionary.NewDefault()
 	fmt.Println(m)
 	s := solver.Solve(m, d, getWordLengths(os.Args[2]))
 	fmt.Println(s)
